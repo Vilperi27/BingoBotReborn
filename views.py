@@ -21,7 +21,7 @@ class SubmissionButtons(View):
             await interaction.response.send_message("Forbidden action.", ephemeral=True)
             return
 
-        await register_user(self.submitter.id)
+        await register_user(interaction.guild.id, self.submitter.id)
 
         try:
             await save_image(interaction, self.submitter.id, self.tile, self.image_url)

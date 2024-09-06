@@ -10,7 +10,7 @@ client = commands.Bot(
     command_prefix=command_prefix, intents=intents
 )
 bingoadmin_role = "Bingo Master"
-base_user_folder = os.path.dirname(__file__) + '/Users/'
+base_user_folder = os.path.dirname(__file__) + '/'
 
 
 async def read_json_data(json_file):

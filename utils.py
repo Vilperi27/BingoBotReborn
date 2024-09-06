@@ -8,9 +8,15 @@ from active_context import base_user_folder
 from errors import TileExistsError
 
 
-async def register_user(user_id):
+async def register_user(guild_id, user_id):
     try:
-        path = f"{base_user_folder}{user_id}"
+        guild_path = f"{base_user_folder}{guild_id}"
+
+        if not os.path.isdir(guild_path):
+            os.mkdir(guild_path)
+            os.mkdir(guild_path + '/Users')
+
+        path = f"{base_user_folder}{guild_id}/Users/{user_id}"
         file_exists = os.path.isdir(path)
 
         if not file_exists:
@@ -18,7 +24,6 @@ async def register_user(user_id):
 
             # Specify the path to point to a json-file
             path = path + '/user_details.json'
-
             with open(path, "a+") as f:
                 data = {
                     'user_details': [
@@ -85,7 +90,7 @@ async def create_submit_entry(path, tile):
 
 
 async def save_image(ctx, submitter_id, tile, image_url):
-    path = f"{base_user_folder}{submitter_id}"
+    path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter_id}"
 
     try:
         img_data = requests.get(image_url).content

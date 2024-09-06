@@ -22,7 +22,7 @@ class BingoCog(commands.Cog):
 
     @commands.command()
     async def get(self, ctx, tile: int, user_id: int):
-        path = f"{base_user_folder}{user_id}"
+        path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
         file_exists = os.path.isdir(path)
 
         # If the account and entry exists, get the given entry and return the submission image
@@ -52,7 +52,7 @@ class BingoCog(commands.Cog):
     @commands.command()
     async def get_all(self, ctx, user_id: int):
         try:
-            path = f"{base_user_folder}{user_id}"
+            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
             file_exists = os.path.isdir(path)
 
             # If account exists, get all the entries from the json-file.
@@ -79,7 +79,7 @@ class BingoCog(commands.Cog):
     @commands.command()
     async def remove(self, ctx, tile: int, user_id):
         try:
-            path = f"{base_user_folder}{user_id}"
+            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
             file_exists = os.path.isdir(path)
 
             if not file_exists:
