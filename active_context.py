@@ -9,7 +9,7 @@ intents = bot_intents.get_bot_intents()
 client = commands.Bot(
     command_prefix=command_prefix, intents=intents
 )
-bingoadmin_role = "Bingo Master"
+bingo_admin_role = "Bingo Master"
 base_user_folder = os.path.dirname(__file__) + '/'
 
 

@@ -9,35 +9,32 @@ from errors import TileExistsError
 
 
 async def register_user(guild_id, user_id):
-    try:
-        guild_path = f"{base_user_folder}{guild_id}"
+    guild_path = f"{base_user_folder}{guild_id}"
 
-        if not os.path.isdir(guild_path):
-            os.mkdir(guild_path)
-            os.mkdir(guild_path + '/Users')
+    if not os.path.isdir(guild_path):
+        os.mkdir(guild_path)
+        os.mkdir(guild_path + '/Users')
 
-        path = f"{base_user_folder}{guild_id}/Users/{user_id}"
-        file_exists = os.path.isdir(path)
+    path = f"{base_user_folder}{guild_id}/Users/{user_id}"
+    file_exists = os.path.isdir(path)
 
-        if not file_exists:
-            os.mkdir(path)
+    if not file_exists:
+        os.mkdir(path)
 
-            # Specify the path to point to a json-file
-            path = path + '/user_details.json'
-            with open(path, "a+") as f:
-                data = {
-                    'user_details': [
-                        {
-                            'name': user_id,
-                            'created': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-                        }
-                    ]
-                }
+        # Specify the path to point to a json-file
+        path = path + '/user_details.json'
+        with open(path, "a+") as f:
+            data = {
+                'user_details': [
+                    {
+                        'name': user_id,
+                        'created': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+                    }
+                ]
+            }
 
-                json_string = json.dumps(data)
-                f.write(json_string)
-    except Exception as e:
-        print(e)
+            json_string = json.dumps(data)
+            f.write(json_string)
 
 
 async def create_submit_entry(path, tile):
@@ -108,21 +105,3 @@ async def save_image(ctx, submitter_id, tile, image_url):
 
 def mention_user(user_id: int):
     return f'<@{user_id}>'
-
-
-def get_completed_lines(matrix, as_data=False):
-    fully_completed_rows = [row for row in matrix if all(cell == 'X' for cell in row)]
-    fully_completed_columns = [list(column) for column in zip(*matrix) if all(cell == 'X' for cell in column)]
-    fully_completed_diagonals = []
-
-    main_diagonal = [matrix[i][i] for i in range(min(len(matrix), len(matrix[0]))) if matrix[i][i] == 'X']
-    if len(main_diagonal) == min(len(matrix), len(matrix[0])):
-        fully_completed_diagonals.append(main_diagonal)
-
-    anti_diagonal = [matrix[i][len(matrix[0]) - 1 - i] for i in range(min(len(matrix), len(matrix[0]))) if matrix[i][len(matrix[0]) - 1 - i] == 'X']
-    if len(anti_diagonal) == min(len(matrix), len(matrix[0])):
-        fully_completed_diagonals.append(anti_diagonal)
-
-    if as_data:
-        return [len(fully_completed_rows), len(fully_completed_columns), len(fully_completed_diagonals)]
-    return f'Rows completed: {len(fully_completed_rows)}', f'Columns completed: {len(fully_completed_columns)}', f'Diagonals completed: {len(fully_completed_diagonals)}'

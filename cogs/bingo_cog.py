@@ -51,65 +51,59 @@ class BingoCog(commands.Cog):
 
     @commands.command()
     async def get_all(self, ctx, user_id: int):
-        try:
-            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
-            file_exists = os.path.isdir(path)
+        path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
+        file_exists = os.path.isdir(path)
 
-            # If account exists, get all the entries from the json-file.
-            if not file_exists:
-                await ctx.send('User does not exist, make sure to use the correct UserID.')
-                return
-            else:
-                with open(path + '/entries.json', 'r') as json_file:
-                    data = json.load(json_file)
-
-                entries = []
-                for entry in data['entries']:
-                    entries.append(entry['tile'])
-
-                if entries:
-                    entries = sorted(entries, key=int)
-                    entries = ','.join(map(str, entries))
-                    await ctx.send(f'Entries for {mention_user(user_id)} exist for tiles: {entries}', silent=True)
-                else:
-                    await ctx.send('No entries found')
-        except Exception as e:
-            print(e)
-
-    @commands.command()
-    async def remove(self, ctx, tile: int, user_id):
-        try:
-            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
-            file_exists = os.path.isdir(path)
-
-            if not file_exists:
-                await ctx.send('User does not exist, make sure to use the correct UserID.')
-                return
-
+        # If account exists, get all the entries from the json-file.
+        if not file_exists:
+            await ctx.send('User does not exist, make sure to use the correct UserID.')
+            return
+        else:
             with open(path + '/entries.json', 'r') as json_file:
                 data = json.load(json_file)
 
-            if len(data['entries']) == 0:
-                await ctx.send(f"The user {mention_user(user_id)} does not have any submissions.", silent=True)
+            entries = []
+            for entry in data['entries']:
+                entries.append(entry['tile'])
+
+            if entries:
+                entries = sorted(entries, key=int)
+                entries = ','.join(map(str, entries))
+                await ctx.send(f'Entries for {mention_user(user_id)} exist for tiles: {entries}', silent=True)
+            else:
+                await ctx.send('No entries found')
+
+    @commands.command()
+    async def remove(self, ctx, tile: int, user_id):
+        path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"
+        file_exists = os.path.isdir(path)
+
+        if not file_exists:
+            await ctx.send('User does not exist, make sure to use the correct UserID.')
+            return
+
+        with open(path + '/entries.json', 'r') as json_file:
+            data = json.load(json_file)
+
+        if len(data['entries']) == 0:
+            await ctx.send(f"The user {mention_user(user_id)} does not have any submissions.", silent=True)
+            return
+
+        for index, entry in enumerate(data['entries']):
+            if entry['tile'] == tile:
+                del data['entries'][index]
+                with open(path + '/entries.json', 'w') as json_file:
+                    json_string = json.dumps(data)
+                    json_file.write(json_string)
+                break
+
+            if index == len(data['entries']) - 1:
+                await ctx.send(f"Tile {tile} does not exist for user {mention_user(user_id)}", silent=True)
                 return
 
-            for index, entry in enumerate(data['entries']):
-                if entry['tile'] == tile:
-                    del data['entries'][index]
-                    with open(path + '/entries.json', 'w') as json_file:
-                        json_string = json.dumps(data)
-                        json_file.write(json_string)
-                    break
+        os.remove(f'{path}/{tile}.jpg')
 
-                if index == len(data['entries']) - 1:
-                    await ctx.send(f"Tile {tile} does not exist for user {mention_user(user_id)}", silent=True)
-                    return
-
-            os.remove(f'{path}/{tile}.jpg')
-
-            await ctx.send(f"Tile {tile} removed for user {mention_user(user_id)}", silent=True)
-        except Exception as e:
-            print(e)
+        await ctx.send(f"Tile {tile} removed for user {mention_user(user_id)}", silent=True)
 
 
 async def setup(client):
