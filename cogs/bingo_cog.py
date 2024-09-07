@@ -4,9 +4,9 @@ import os
 import discord
 from discord.ext import commands
 
-from active_context import base_user_folder, bingo_admin_role
+from active_context import base_user_folder, bingo_admin_roles
 from embeds import get_submission_embed
-from utils import mention_user
+from utils import mention_user, has_admin_role
 from views import SubmissionButtons
 
 
@@ -75,8 +75,8 @@ class BingoCog(commands.Cog):
 
     @commands.command()
     async def remove(self, ctx, tile: int, user_id: int):
-        if discord.utils.get(ctx.guild.roles, name=bingo_admin_role) not in ctx.author.roles:
-            await ctx.send(f"Forbidden action.", silent=True)
+        if not has_admin_role(ctx):
+            await ctx.send("Forbidden action.", silent=True)
             return
 
         path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id}"

@@ -2,9 +2,10 @@ from datetime import datetime
 import os
 import json
 
+import discord
 import requests
 
-from active_context import base_user_folder
+from active_context import base_user_folder, bingo_admin_roles
 from errors import TileExistsError
 
 
@@ -105,3 +106,10 @@ async def save_image(ctx, submitter_id, tile, image_url):
 
 def mention_user(user_id: int):
     return f'<@{user_id}>'
+
+
+def has_admin_role(interaction):
+    for admin_role in bingo_admin_roles:
+        if discord.utils.get(interaction.guild.roles, name=admin_role) in interaction.user.roles:
+            return True
+    return False
