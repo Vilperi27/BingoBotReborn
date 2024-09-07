@@ -14,7 +14,6 @@ async def get_submission_embed(ctx, tile_number):
 
     embed = discord.Embed(title=f"Submission for tile {tile_number}", description=f"Submitted by {ctx.author.mention}")
     embed.set_image(url=attachment.url)
-    embed.description = f"Submission for tile {tile_number}"
     embed.colour = discord.Colour.light_grey()
     embed.set_footer(
         text=f"Bingo admin will approve or reject your submission."

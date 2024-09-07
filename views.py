@@ -15,9 +15,7 @@ class SubmissionButtons(View):
 
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.success)
     async def approve(self, interaction: discord.Interaction, button: Button):
-        role = discord.utils.get(interaction.guild.roles, name=bingo_admin_role)
-
-        if role not in interaction.user.roles:
+        if discord.utils.get(interaction.guild.roles, name=bingo_admin_role) not in interaction.user.roles:
             await interaction.response.send_message("Forbidden action.", ephemeral=True)
             return
 
@@ -39,13 +37,11 @@ class SubmissionButtons(View):
         for button in self.children:
             button.disabled = True
 
-        await interaction.message.edit(view=self)
+        await interaction.message.edit(content=":white_check_mark: Approved! :white_check_mark:", view=self)
 
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.danger)
     async def reject(self, interaction: discord.Interaction, button: Button):
-        role = discord.utils.get(interaction.guild.roles, name=bingo_admin_role)
-
-        if role not in interaction.user.roles:
+        if discord.utils.get(interaction.guild.roles, name=bingo_admin_role) not in interaction.user.roles:
             await interaction.response.send_message("Forbidden action.", ephemeral=True)
             return
 
@@ -57,6 +53,6 @@ class SubmissionButtons(View):
         for button in self.children:
             button.disabled = True
 
-        await interaction.message.edit(view=self)
+        await interaction.message.edit(content=":x: Rejected! :x:", view=self)
 
     
