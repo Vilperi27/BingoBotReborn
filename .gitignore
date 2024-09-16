@@ -1,4 +1,4 @@
 local_secrets.py
 *.pyc
 __pycache__
-venv/*
+venv/
