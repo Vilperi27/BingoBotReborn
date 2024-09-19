@@ -62,7 +62,7 @@ class OverwriteButtons(View):
         self.submitter = submitter
         self.image_url = image_url
 
-    @discord.ui.button(label="Overwrite", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Overwrite", style=discord.ButtonStyle.primary)
     async def overwrite(self, interaction: discord.Interaction, button: Button):
         if not has_admin_role(interaction):
             await interaction.response.send_message("Forbidden action.", ephemeral=True)
