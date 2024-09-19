@@ -38,7 +38,7 @@ async def register_user(guild_id, user_id):
             f.write(json_string)
 
 
-async def create_submit_entry(path, tile):
+async def create_submit_entry(path, tile, overwrite=False):
     path = path + '/entries.json'
     file_exists = os.path.isfile(path)
 
@@ -57,7 +57,7 @@ async def create_submit_entry(path, tile):
                 found_tile_index = index
                 break
 
-        if tile_exists:
+        if tile_exists and not overwrite:
             raise TileExistsError("Tile already exists for that id.")
 
         if not tile_exists:
@@ -87,7 +87,7 @@ async def create_submit_entry(path, tile):
             f.write(json_string)
 
 
-async def save_image(ctx, submitter_id, tile, image_url):
+async def save_image(ctx, submitter_id, tile, image_url, overwrite=False):
     path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter_id}"
 
     try:
@@ -96,7 +96,7 @@ async def save_image(ctx, submitter_id, tile, image_url):
         await ctx.response.send_message("No image provided, entry must have an image attached", ephemeral=True)
         return
 
-    await create_submit_entry(path, tile)
+    await create_submit_entry(path, tile, overwrite)
 
     # If the account exists, create an image entry of the submission
     with open(path + '/' + str(tile) + '.jpg', 'wb') as handler:

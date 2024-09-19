@@ -7,7 +7,7 @@ from discord.ext import commands
 from active_context import base_user_folder, bingo_admin_roles
 from embeds import get_submission_embed
 from utils import mention_user, has_admin_role
-from views import SubmissionButtons
+from views import SubmissionButtons, OverwriteButtons
 
 
 class BingoCog(commands.Cog):
@@ -16,9 +16,17 @@ class BingoCog(commands.Cog):
 
     @commands.command()
     async def submit(self, ctx, tile: int):
-        embed = await get_submission_embed(ctx, tile)
-        queue_buttons = SubmissionButtons(tile=tile, submitter=ctx.author, image_url=ctx.message.attachments[0].url)
-        await ctx.send(view=queue_buttons, embed=embed)
+        path = f"{base_user_folder}{ctx.message.guild.id}/Users/{ctx.author.id}/{tile}.jpg"
+        file_exists = os.path.isfile(path)
+
+        embed = await get_submission_embed(ctx, tile, file_exists)
+
+        if file_exists:
+            submit_buttons = OverwriteButtons(tile=tile, submitter=ctx.author, image_url=ctx.message.attachments[0].url)
+        else:
+            submit_buttons = SubmissionButtons(tile=tile, submitter=ctx.author, image_url=ctx.message.attachments[0].url)
+
+        await ctx.send(view=submit_buttons, embed=embed)
 
     @commands.command()
     async def get(self, ctx, tile: int, user_id: int):
