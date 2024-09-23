@@ -6,11 +6,12 @@ from utils import register_user, save_image, has_admin_role
 
 
 class SubmissionButtons(View):
-    def __init__(self, tile: int, submitter: discord.User, image_url):
+    def __init__(self, tile: int, submitter: discord.User, image_url, team: str = None):
         super().__init__(timeout=None)
         self.tile = tile
         self.submitter = submitter
         self.image_url = image_url
+        self.team = team
 
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.success)
     async def approve(self, interaction: discord.Interaction, button: Button):
@@ -18,16 +19,8 @@ class SubmissionButtons(View):
             await interaction.response.send_message("Forbidden action.", ephemeral=True)
             return
 
-        await register_user(interaction.guild.id, self.submitter.id)
-
-        try:
-            await save_image(interaction, self.submitter.id, self.tile, self.image_url)
-        except TileExistsError as e:
-            await interaction.response.send_message(
-                f"Submission for the tile already exists. Please use !remove command first",
-                ephemeral=True
-            )
-
+        await register_user(interaction.guild.id, self.submitter.id, self.team)
+        await save_image(interaction, self.submitter.id, self.tile, self.image_url, team=self.team)
         await interaction.response.send_message(
             f"You have approved this submission!",
             ephemeral=True
@@ -56,11 +49,12 @@ class SubmissionButtons(View):
 
 
 class OverwriteButtons(View):
-    def __init__(self, tile: int, submitter: discord.User, image_url):
+    def __init__(self, tile: int, submitter: discord.User | str, image_url, team: str = None):
         super().__init__(timeout=None)
         self.tile = tile
         self.submitter = submitter
         self.image_url = image_url
+        self.team = team
 
     @discord.ui.button(label="Overwrite", style=discord.ButtonStyle.primary)
     async def overwrite(self, interaction: discord.Interaction, button: Button):
@@ -68,8 +62,8 @@ class OverwriteButtons(View):
             await interaction.response.send_message("Forbidden action.", ephemeral=True)
             return
 
-        await register_user(interaction.guild.id, self.submitter.id)
-        await save_image(interaction, self.submitter.id, self.tile, self.image_url, True)
+        await register_user(interaction.guild.id, self.submitter.id, self.team)
+        await save_image(interaction, self.submitter.id, self.tile, self.image_url, True, self.team)
         await interaction.response.send_message(
             f"You have approved and overwritten this submission!",
             ephemeral=True

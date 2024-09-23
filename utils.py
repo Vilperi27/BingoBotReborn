@@ -4,26 +4,50 @@ import json
 
 import discord
 import requests
+from discord import Interaction
 
 from active_context import base_user_folder, bingo_admin_roles
 from errors import TileExistsError
 
 
-async def register_user(guild_id, user_id):
+async def register_user(guild_id, user_id, team: str = None):
     guild_path = f"{base_user_folder}{guild_id}"
 
     if not os.path.isdir(guild_path):
         os.mkdir(guild_path)
         os.mkdir(guild_path + '/Users')
+        os.mkdir(guild_path + '/Teams')
 
-    path = f"{base_user_folder}{guild_id}/Users/{user_id}"
-    file_exists = os.path.isdir(path)
+    user_path = f"{base_user_folder}{guild_id}/Users/{user_id}"
+    user_file_exists = os.path.isdir(user_path)
 
-    if not file_exists:
-        os.mkdir(path)
+    if team:
+        team_path = f"{base_user_folder}{guild_id}/Teams/{team}"
+        team_file_exists = os.path.isdir(team_path)
+
+        if not team_file_exists:
+            os.mkdir(team_path)
+
+            # Specify the path to point to a json-file
+            path = team_path + '/team_details.json'
+            with open(path, "a+") as f:
+                data = {
+                    'team_details': [
+                        {
+                            'name': team,
+                            'created': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+                        }
+                    ]
+                }
+
+                json_string = json.dumps(data)
+                f.write(json_string)
+
+    if not user_file_exists:
+        os.mkdir(user_path)
 
         # Specify the path to point to a json-file
-        path = path + '/user_details.json'
+        path = user_path + '/user_details.json'
         with open(path, "a+") as f:
             data = {
                 'user_details': [
@@ -38,7 +62,7 @@ async def register_user(guild_id, user_id):
             f.write(json_string)
 
 
-async def create_submit_entry(path, tile, overwrite=False):
+async def create_submit_entry(path: str, tile: int, submitter: str, overwrite=False):
     path = path + '/entries.json'
     file_exists = os.path.isfile(path)
 
@@ -63,10 +87,12 @@ async def create_submit_entry(path, tile, overwrite=False):
         if not tile_exists:
             data['entries'].append({
                 'tile': tile,
+                'submitter': submitter,
                 'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
             })
         else:
             data['entries'][found_tile_index]['tile'] = tile
+            data['entries'][found_tile_index]['submitter'] = submitter
             data['entries'][found_tile_index]['submitted'] = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
 
         with open(path, 'w') as json_file:
@@ -78,6 +104,7 @@ async def create_submit_entry(path, tile, overwrite=False):
                 'entries': [
                     {
                         'tile': tile,
+                        'submitter': submitter,
                         'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
                     }
                 ]
@@ -87,8 +114,8 @@ async def create_submit_entry(path, tile, overwrite=False):
             f.write(json_string)
 
 
-async def save_image(ctx, submitter_id, tile, image_url, overwrite=False):
-    path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter_id}"
+async def save_image(ctx, submitter_id, tile, image_url, overwrite=False, team: str = None):
+    user_path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter_id}"
 
     try:
         img_data = requests.get(image_url).content
@@ -96,10 +123,14 @@ async def save_image(ctx, submitter_id, tile, image_url, overwrite=False):
         await ctx.response.send_message("No image provided, entry must have an image attached", ephemeral=True)
         return
 
-    await create_submit_entry(path, tile, overwrite)
+    await create_submit_entry(user_path, tile, str(submitter_id), overwrite)
+
+    if team:
+        team_path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{team}"
+        await create_submit_entry(team_path, tile, str(submitter_id), overwrite)
 
     # If the account exists, create an image entry of the submission
-    with open(path + '/' + str(tile) + '.jpg', 'wb') as handler:
+    with open(user_path + '/' + str(tile) + '.jpg', 'wb') as handler:
         handler.write(img_data)
         handler.truncate()
 
@@ -109,7 +140,12 @@ def mention_user(user_id: int):
 
 
 def has_admin_role(interaction):
+    if isinstance(interaction, Interaction):
+        user_roles = interaction.user.roles
+    else:
+        user_roles = interaction.author.roles
+
     for admin_role in bingo_admin_roles:
-        if discord.utils.get(interaction.guild.roles, name=admin_role) in interaction.user.roles:
+        if discord.utils.get(interaction.guild.roles, name=admin_role) in user_roles:
             return True
     return False
