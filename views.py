@@ -1,7 +1,6 @@
 import discord
 from discord.ui import View, Button
 
-from errors import TileExistsError
 from utils import register_user, save_image, has_admin_role
 
 
