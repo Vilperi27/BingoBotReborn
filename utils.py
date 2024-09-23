@@ -10,16 +10,12 @@ from active_context import base_user_folder, bingo_admin_roles
 from errors import TileExistsError
 
 
-async def register_user(guild_id, user_id, team: str = None):
+async def register_team(guild_id, team: str = None):
     guild_path = f"{base_user_folder}{guild_id}"
 
     if not os.path.isdir(guild_path):
         os.mkdir(guild_path)
-        os.mkdir(guild_path + '/Users')
         os.mkdir(guild_path + '/Teams')
-
-    user_path = f"{base_user_folder}{guild_id}/Users/{user_id}"
-    user_file_exists = os.path.isdir(user_path)
 
     if team:
         team_path = f"{base_user_folder}{guild_id}/Teams/{team}"
@@ -42,6 +38,17 @@ async def register_user(guild_id, user_id, team: str = None):
 
                 json_string = json.dumps(data)
                 f.write(json_string)
+
+
+async def register_user(guild_id, user_id, team: str = None):
+    guild_path = f"{base_user_folder}{guild_id}"
+
+    if not os.path.isdir(guild_path):
+        os.mkdir(guild_path)
+        os.mkdir(guild_path + '/Users')
+
+    user_path = f"{base_user_folder}{guild_id}/Users/{user_id}"
+    user_file_exists = os.path.isdir(user_path)
 
     if not user_file_exists:
         os.mkdir(user_path)

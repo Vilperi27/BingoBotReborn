@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from active_context import base_user_folder
 from embeds import get_submission_embed
-from utils import mention_user, has_admin_role
+from utils import mention_user, has_admin_role, register_team
 from views import SubmissionButtons, OverwriteButtons
 
 
@@ -15,8 +15,27 @@ class BingoCog(commands.Cog):
         self.client = client
 
     @commands.command()
-    async def submit(self, ctx, tile: int, *user_id_or_team):
+    async def register_team(self, ctx, *user_id_or_team):
+        if not has_admin_role(ctx):
+            await ctx.send("Forbidden action.", silent=True)
+            return
+
         team = " ".join(user_id_or_team[:])
+        if len(team) == 0:
+            await ctx.send("No name given", silent=True)
+            return
+
+        await register_team(ctx.message.guild.id, team)
+        await ctx.send(f"Team with the name of {team} was registered!")
+
+    @commands.command()
+    async def submit(self, ctx, tile: int, *user_id_or_team):
+        if team := " ".join(user_id_or_team[:]):
+            path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{team}"
+            file_exists = os.path.isdir(path)
+            if not file_exists:
+                await ctx.send("Team does not exist.", silent=True)
+                return
 
         path = f"{base_user_folder}{ctx.message.guild.id}/Users/{ctx.author.id}/{tile}.jpg"
         file_exists = os.path.isfile(path)

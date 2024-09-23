@@ -15,6 +15,7 @@ class HelpCog(commands.Cog):
         help_info += f'{command_prefix}submit tile [team name, optional] - Submits an entry for a specific tile for the bingo admin to review.\nExample:\n{command_prefix}submit 7\nOr\n{command_prefix}submit 7 Magnificent Elves\n\n'
         help_info += f'{command_prefix}get tile [user_id or team name] - Gets a specific tile entry for a user or team.\nExample:\n{command_prefix}get 7 201768152982487041\nOr\n{command_prefix}get 7 Magnificent Elves\n\n'
         help_info += f'{command_prefix}get_all [user_id or team name] - Gets all entries for a specific user.\nExample:\n{command_prefix}get_all 201768152982487041\nOr\n{command_prefix}get_all Magnificent Elves\n\n'
+        help_info += f'{command_prefix}register_team [team name] - Registers a team with a specific name to the bingo bot.\nExample:\n{command_prefix}register_team Magnificent Elves\n\n'
         help_info += f'{command_prefix}remove tile [user_id or team name] - (ADMIN ONLY) Removes a specific tile for user.\nExample:\n{command_prefix}remove 7 201768152982487041\nOr\n{command_prefix}remove 7 Magnificent Elves\n\n'
         help_info += f'Note: You can get the user_id from right clicking the user on discord and selecting "Copy User ID"\n\n'
 
