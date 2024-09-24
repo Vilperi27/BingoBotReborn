@@ -46,7 +46,7 @@ class BingoCog(commands.Cog):
             submit_buttons = OverwriteButtons(
                 tile=tile,
                 submitter=ctx.author,
-                image_url=ctx.message.attachments[0].url,
+                image_url=ctx.message.aFttachments[0].url,
                 team=team
             )
         else:

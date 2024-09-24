@@ -6,7 +6,9 @@ import discord
 import requests
 from discord import Interaction
 
+import active_context
 from active_context import base_user_folder, bingo_admin_roles
+from enums import AdminMode
 from errors import TileExistsError
 
 
@@ -147,12 +149,20 @@ def mention_user(user_id: int):
 
 
 def has_admin_role(interaction):
-    if isinstance(interaction, Interaction):
-        user_roles = interaction.user.roles
-    else:
-        user_roles = interaction.author.roles
+    if active_context.admin_mode == AdminMode.ROLE:
+        if isinstance(interaction, Interaction):
+            user_roles = interaction.user.roles
+        else:
+            user_roles = interaction.author.roles
 
-    for admin_role in bingo_admin_roles:
-        if discord.utils.get(interaction.guild.roles, name=admin_role) in user_roles:
-            return True
+        for admin_role in bingo_admin_roles:
+            if discord.utils.get(interaction.guild.roles, name=admin_role) in user_roles:
+                return True
+
+    if active_context.admin_mode == AdminMode.ID:
+        if isinstance(interaction, Interaction):
+            return interaction.user.id in active_context.admin_users
+        else:
+            return interaction.author.id in active_context.admin_users
+
     return False

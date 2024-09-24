@@ -3,6 +3,7 @@ import os
 
 from discord.ext import commands
 import bot_intents
+from enums import AdminMode
 
 command_prefix = '!'
 intents = bot_intents.get_bot_intents()
@@ -10,6 +11,8 @@ client = commands.Bot(
     command_prefix=command_prefix, intents=intents
 )
 bingo_admin_roles = ["Leaders", "General", "Moderator", "Bingo Master"]
+admin_users = [700413669011488810, 184022692867997697, 201768152982487042]
+admin_mode = AdminMode.ID
 base_user_folder = os.path.dirname(__file__) + '/'
 
 
