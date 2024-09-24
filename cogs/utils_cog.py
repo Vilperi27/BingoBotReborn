@@ -1,8 +1,6 @@
-import discord
 from discord.ext import commands
 
 import active_context
-from active_context import command_prefix
 from enums import AdminMode
 
 
