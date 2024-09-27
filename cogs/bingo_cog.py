@@ -39,6 +39,13 @@ class BingoCog(commands.Cog):
             )
             return
 
+        if tile and item:
+            await interaction.response.send_message(
+                "Only provide either tile number or item name.",
+                ephemeral=True
+            )
+            return
+
         if item:
             try:
                 osrs_item_ids.get_item_by_name(item)
