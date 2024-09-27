@@ -2,8 +2,10 @@ import json
 import os
 
 import discord
+from discord import app_commands
 from discord.ext import commands
 
+import osrs_item_ids
 from active_context import base_user_folder
 from embeds import get_submission_embed
 from utils import mention_user, has_admin_role, register_team
@@ -14,85 +16,145 @@ class BingoCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command()
-    async def register_team(self, ctx, *user_id_or_team):
-        if not has_admin_role(ctx):
-            await ctx.send("Forbidden action.", silent=True)
-            return
-
-        team = " ".join(user_id_or_team[:])
-        if len(team) == 0:
-            await ctx.send("No name given", silent=True)
-            return
-
-        await register_team(ctx.message.guild.id, team)
-        await ctx.send(f"Team with the name of {team} was registered!")
-
-    @commands.command()
-    async def submit(self, ctx, tile: int, *user_id_or_team):
-        if team := " ".join(user_id_or_team[:]):
-            path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{team}"
-            file_exists = os.path.isdir(path)
-            if not file_exists:
-                await ctx.send("Team does not exist.", silent=True)
+    @app_commands.command(name="register", description="Submit a tile image for a team or user.")
+    @app_commands.describe(team="Team name")
+    async def register(self, ctx, team: str):
+        try:
+            if not has_admin_role(ctx):
+                await ctx.response.send_message("Forbidden action.", silent=True)
                 return
 
-        path = f"{base_user_folder}{ctx.message.guild.id}/Users/{ctx.author.id}/{tile}.jpg"
-        file_exists = os.path.isfile(path)
+            await register_team(ctx.guild.id, team)
+            await ctx.response.send_message(f"Team with the name of {team} was registered!")
+        except Exception as e:
+            print(e)
 
-        embed = await get_submission_embed(ctx, tile, team, file_exists)
+    @app_commands.command(name="submit", description="Submit a tile image for a team or user.")
+    @app_commands.describe(attachment="Image for the submission", tile="The tile number to submit (optional)", item="Item name (optional)", team="Team name or User ID (optional)")
+    async def submit(self, interaction: discord.Interaction, attachment: discord.Attachment, tile: int = None, item: str = None, team: str = None):
+        if tile is None and item is None:
+            await interaction.response.send_message(
+                "You must provide either a tile number or an item.",
+                ephemeral=True
+            )
+            return
 
+        if item:
+            try:
+                osrs_item_ids.get_item_by_name(item)
+            except Exception:
+                await interaction.response.send_message(
+                    "Item does not exist",
+                    ephemeral=True
+                )
+                return
+
+        # Checking if the team exists
+        if team:
+            path = f"{base_user_folder}{interaction.guild.id}/Teams/{team}"
+            file_exists = os.path.isdir(path)
+            if not file_exists:
+                await interaction.response.send_message("Team does not exist.", ephemeral=True)
+                return
+
+        file_exists = False
+
+        # Check if the file exists for the user
+        if tile:
+            path = f"{base_user_folder}{interaction.guild.id}/Users/{interaction.user.id}/{tile}.jpg"
+            file_exists = os.path.isfile(path)
+
+        # Fetch submission embed (assuming you have a helper function for this)
+        embed = await get_submission_embed(interaction, attachment, tile, item, team, file_exists)
+
+        # Create appropriate buttons depending on if the file exists
         if file_exists:
             submit_buttons = OverwriteButtons(
                 tile=tile,
-                submitter=ctx.author,
-                image_url=ctx.message.aFttachments[0].url,
+                item=item,
+                submitter=interaction.user,
+                attachment=attachment,
                 team=team
             )
         else:
             submit_buttons = SubmissionButtons(
                 tile=tile,
-                submitter=ctx.author,
-                image_url=ctx.message.attachments[0].url,
+                item=item,
+                submitter=interaction.user,
+                attachment=attachment,
                 team=team
             )
 
-        await ctx.send(view=submit_buttons, embed=embed)
+        # Send the message with buttons and the embed
+        await interaction.response.send_message(embed=embed, view=submit_buttons)
 
-    @commands.command()
-    async def get(self, ctx, tile: int, *user_id_or_team):
-        user_id_or_team = " ".join(user_id_or_team[:])
+    @app_commands.command(name="get", description="Get a submission for a specific item or tile")
+    @app_commands.describe(tile="Tile number if item name is not provided (optional)", item="Item name if tile is not provided (optional)", team="Team name if userID is not provided (optional)", user_id="User ID if team name is not provided (optional)")
+    async def get(self, ctx, tile: int = None, item: str = None, team: str = None, user_id: str = None):
+        if not tile and not item:
+            await ctx.response.send_message(
+                "You must provide either a tile number or an item.",
+                ephemeral=True
+            )
+            return
 
-        if isinstance(user_id_or_team, str):
-            path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{user_id_or_team}"
+        if tile and item:
+            await ctx.response.send_message(
+                "Only provide either tile number or item name.",
+                ephemeral=True
+            )
+            return
+
+        if team:
+            path = f"{base_user_folder}{ctx.guild.id}/Teams/{team}"
         else:
-            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id_or_team}"
+            path = f"{base_user_folder}{ctx.guild.id}/Users/{user_id}"
         file_exists = os.path.isdir(path)
 
         # If the account and entry exists, get the given entry and return the submission image
         # With the name of the account, tile number and time of submission.
         if not file_exists:
-            await ctx.send('User or team does not exist, make sure to use the correct id or name.')
+            await ctx.response.send_message(
+                'User or team does not exist, make sure to use the correct id or name.',
+                ephemeral=True
+            )
             return
-        else:
-            with open(path + '/entries.json', 'r') as json_file:
-                data = json.load(json_file)
 
-            submission_time = "N/A"
-            submitter = None
+        with open(path + '/entries.json', 'r') as json_file:
+            data = json.load(json_file)
 
+        submission_time = "N/A"
+        submitter = None
+        matching_files = []
+
+        if tile:
+            image_path = f"{base_user_folder}{ctx.guild.id}/Users/{user_id}"
             for entry in data["entries"]:
                 if entry["tile"] == tile:
+                    matching_files.append(f'{tile}.jpg')
+                    submitter = entry["submitter"]
+                    submission_time = entry["submitted"]
+                    break
+        else:
+            for entry in data["entries"]:
+                if item in str(entry["tile"]):
                     submitter = entry["submitter"]
                     submission_time = entry["submitted"]
                     break
 
-            image_path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter}"
+            image_path = f"{base_user_folder}{ctx.guild.id}/Users/{submitter}"
 
-            with open(f'{image_path}/{tile}.jpg', 'rb') as f:
+            for filename in os.listdir(image_path):
+                if item in filename:
+                    matching_files.append(filename)
+
+        tile_name = item if item else tile
+
+        for file in matching_files:
+            with open(f'{image_path}/{file}', 'rb') as f:
                 picture = discord.File(f)
                 await ctx.channel.send(
-                    content='Submitter: %s\nTile: %s\nSubmitted: %s' % (mention_user(submitter), tile, submission_time),
+                    content='Submitter: %s\nTile: %s\nSubmitted: %s' % (mention_user(submitter), tile_name, submission_time),
                     file=picture,
                     silent=True
                 )

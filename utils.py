@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 import os
 import json
@@ -14,10 +15,13 @@ from errors import TileExistsError
 
 async def register_team(guild_id, team: str = None):
     guild_path = f"{base_user_folder}{guild_id}"
+    team_path = f"{base_user_folder}{guild_id}/Teams"
 
     if not os.path.isdir(guild_path):
         os.mkdir(guild_path)
-        os.mkdir(guild_path + '/Teams')
+
+    if not os.path.isdir(team_path):
+        os.mkdir(team_path)
 
     if team:
         team_path = f"{base_user_folder}{guild_id}/Teams/{team}"
@@ -71,7 +75,7 @@ async def register_user(guild_id, user_id, team: str = None):
             f.write(json_string)
 
 
-async def create_submit_entry(path: str, tile: int, submitter: str, overwrite=False):
+async def create_submit_entry(path: str, tile: int | str, submitter: str, overwrite=False):
     path = path + '/entries.json'
     file_exists = os.path.isfile(path)
 
@@ -123,14 +127,15 @@ async def create_submit_entry(path: str, tile: int, submitter: str, overwrite=Fa
             f.write(json_string)
 
 
-async def save_image(ctx, submitter_id, tile, image_url, overwrite=False, team: str = None):
+async def save_image(ctx, submitter_id, tile, item, attachment, overwrite=False, team: str = None):
     user_path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter_id}"
+    file_exists = os.path.isdir(user_path)
 
-    try:
-        img_data = requests.get(image_url).content
-    except Exception:
-        await ctx.response.send_message("No image provided, entry must have an image attached", ephemeral=True)
-        return
+    if not file_exists:
+        os.mkdir(user_path)
+
+    if item:
+        tile = f"{item}-{uuid.uuid4()}"
 
     await create_submit_entry(user_path, tile, str(submitter_id), overwrite)
 
@@ -138,10 +143,7 @@ async def save_image(ctx, submitter_id, tile, image_url, overwrite=False, team: 
         team_path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{team}"
         await create_submit_entry(team_path, tile, str(submitter_id), overwrite)
 
-    # If the account exists, create an image entry of the submission
-    with open(user_path + '/' + str(tile) + '.jpg', 'wb') as handler:
-        handler.write(img_data)
-        handler.truncate()
+    await attachment.save(f'{user_path}/{tile}.jpg')
 
 
 def mention_user(user_id: int):

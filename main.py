@@ -25,4 +25,15 @@ async def main():
         await load_extensions()
         await client.start(DISCORD_API_KEY)
 
+
+@client.event
+async def on_ready():
+    print(f'Logged in as {client.user.name} ({client.user.id})')
+
+    try:
+        synced = await client.tree.sync()
+        print(f"Synced {len(synced)} command(s)")
+    except Exception as e:
+        print(f"Failed to sync commands: {e}")
+
 asyncio.run(main())

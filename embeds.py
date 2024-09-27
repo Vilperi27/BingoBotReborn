@@ -1,26 +1,29 @@
 import discord
 
 
-async def get_submission_embed(ctx, tile_number, team, overwrite=False):
-    if not ctx.message.attachments:
+async def get_submission_embed(ctx, attachment, tile_number, item, team, overwrite=False):
+    if not attachment:
         await ctx.send("Please attach an image with your submission!")
         return
-
-    attachment = ctx.message.attachments[0]
 
     if not attachment.content_type.startswith('image/'):
         await ctx.send("Please submit a valid image!")
         return
 
+    if item:
+        submission = item
+    else:
+        submission = tile_number
+
     if team:
         embed = discord.Embed(
-            title=f"Submission for tile {tile_number} for {team}",
-            description=f"Submitted by {ctx.author.mention}"
+            title=f"Submission for {submission} for {team}",
+            description=f"Submitted by {ctx.user.mention}"
         )
     else:
         embed = discord.Embed(
-            title=f"Submission for tile {tile_number}",
-            description=f"Submitted by {ctx.author.mention}"
+            title=f"Submission for {submission}",
+            description=f"Submitted by {ctx.user.mention}"
         )
     embed.set_image(url=attachment.url)
     embed.colour = discord.Colour.light_grey()
