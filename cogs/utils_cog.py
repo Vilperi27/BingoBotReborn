@@ -12,11 +12,11 @@ class UtilCog(commands.Cog):
     @commands.command()
     async def set_admin_mode(self, ctx, mode: int):
         if not ctx.author.id == 201768152982487041:
-            await ctx.send("Nice try")
+            await ctx.response.send_message("Nice try")
             return
 
         active_context.admin_mode = AdminMode(mode)
-        await ctx.send(f"Admin mode set to {AdminMode(mode).name}")
+        await ctx.response.send_message(f"Admin mode set to {AdminMode(mode).name}")
 
 
 async def setup(client):

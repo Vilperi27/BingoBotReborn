@@ -3,11 +3,11 @@ import discord
 
 async def get_submission_embed(ctx, attachment, tile_number, item, team, overwrite=False):
     if not attachment:
-        await ctx.send("Please attach an image with your submission!")
+        await ctx.response.send_message("Please attach an image with your submission!")
         return
 
     if not attachment.content_type.startswith('image/'):
-        await ctx.send("Please submit a valid image!")
+        await ctx.response.send_message("Please submit a valid image!")
         return
 
     if item:

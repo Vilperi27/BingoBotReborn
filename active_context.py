@@ -1,12 +1,11 @@
 import json
 import os
 
-from discord import app_commands
 from discord.ext import commands
 import bot_intents
 from enums import AdminMode
 
-command_prefix = '!'
+command_prefix = '/'
 intents = bot_intents.get_bot_intents()
 client = commands.Bot(
     command_prefix=command_prefix, intents=intents

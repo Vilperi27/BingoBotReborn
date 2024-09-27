@@ -180,7 +180,7 @@ class BingoCog(commands.Cog):
 
         # If account exists, get all the entries from the json-file.
         if not file_exists:
-            await ctx.send('User or team does not exist, make sure to use the correct id or name.')
+            await ctx.response.send_message('User or team does not exist, make sure to use the correct id or name.')
             return
         else:
             with open(path + '/entries.json', 'r') as json_file:
@@ -195,18 +195,18 @@ class BingoCog(commands.Cog):
                 entries = ','.join(map(str, entries))
 
                 if is_team:
-                    await ctx.send(f'Entries for {user_id_or_team} exist for tiles: {entries}', silent=True)
+                    await ctx.response.send_message(f'Entries for {user_id_or_team} exist for tiles: {entries}', silent=True)
                 else:
-                    await ctx.send(f'Entries for {mention_user(user_id_or_team)} exist for tiles: {entries}', silent=True)
+                    await ctx.response.send_message(f'Entries for {mention_user(user_id_or_team)} exist for tiles: {entries}', silent=True)
             else:
-                await ctx.send('No entries found')
+                await ctx.response.send_message('No entries found')
 
     @commands.command()
     async def remove(self, ctx, tile: int, *user_id_or_team):
         user_id_or_team = " ".join(user_id_or_team[:])
 
         if not has_admin_role(ctx):
-            await ctx.send("Forbidden action.", silent=True)
+            await ctx.response.send_message("Forbidden action.", silent=True)
             return
 
         if isinstance(user_id_or_team, str):
@@ -219,14 +219,14 @@ class BingoCog(commands.Cog):
         file_exists = os.path.isdir(path)
 
         if not file_exists:
-            await ctx.send('User or team does not exist, make sure to use the correct id or name.')
+            await ctx.response.send_message('User or team does not exist, make sure to use the correct id or name.')
             return
 
         with open(path + '/entries.json', 'r') as json_file:
             data = json.load(json_file)
 
         if len(data['entries']) == 0:
-            await ctx.send(f"{user_id_or_team} does not have any submissions.", silent=True)
+            await ctx.response.send_message(f"{user_id_or_team} does not have any submissions.", silent=True)
             return
 
         submitter = None
@@ -266,7 +266,7 @@ class BingoCog(commands.Cog):
                     return
 
             os.remove(f'{user_path}/{tile}.jpg')
-        await ctx.send(f"Tile {tile} removed for {user_id_or_team}", silent=True)
+        await ctx.response.send_message(f"Tile {tile} removed for {user_id_or_team}", silent=True)
 
 
 async def setup(client):

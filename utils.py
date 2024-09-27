@@ -51,6 +51,8 @@ async def register_user(guild_id, user_id, team: str = None):
 
     if not os.path.isdir(guild_path):
         os.mkdir(guild_path)
+
+    if not os.path.isdir(f'{guild_path}/Users'):
         os.mkdir(guild_path + '/Users')
 
     user_path = f"{base_user_folder}{guild_id}/Users/{user_id}"
