@@ -5,10 +5,9 @@ from utils import register_user, save_image, has_admin_role
 
 
 class SubmissionButtons(View):
-    def __init__(self, tile: int, item: str, submitter: discord.User, attachment, team: str = None):
+    def __init__(self, tile: str, submitter: discord.User, attachment, team: str = None):
         super().__init__(timeout=None)
         self.tile = tile
-        self.item = item
         self.submitter = submitter
         self.attachment = attachment
         self.team = team
@@ -21,7 +20,7 @@ class SubmissionButtons(View):
                 return
 
             await register_user(interaction.guild.id, self.submitter.id, self.team)
-            await save_image(interaction, self.submitter.id, self.tile, self.item, self.attachment, team=self.team)
+            await save_image(interaction, self.submitter.id, self.tile, self.attachment, team=self.team, overwrite=True)
             await interaction.response.send_message(
                 f"You have approved this submission!",
                 ephemeral=True
@@ -52,10 +51,9 @@ class SubmissionButtons(View):
 
 
 class OverwriteButtons(View):
-    def __init__(self, tile: int, item: str, submitter: discord.User | str, attachment, team: str = None):
+    def __init__(self, tile: int, submitter: discord.User | str, attachment, team: str = None):
         super().__init__(timeout=None)
         self.tile = tile
-        self.item = item
         self.submitter = submitter
         self.attachment = attachment
         self.team = team
@@ -67,7 +65,7 @@ class OverwriteButtons(View):
             return
 
         await register_user(interaction.guild.id, self.submitter.id, self.team)
-        await save_image(interaction, self.submitter.id, self.tile, self.item, self.attachment, True, self.team)
+        await save_image(interaction, self.submitter.id, self.tile, self.attachment, True, self.team)
         await interaction.response.send_message(
             f"You have approved and overwritten this submission!",
             ephemeral=True

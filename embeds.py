@@ -11,9 +11,9 @@ async def get_submission_embed(ctx, attachment, tile_number, item, team, overwri
         return
 
     if item:
-        submission = item
+        submission = f"the item {item}"
     else:
-        submission = tile_number
+        submission = f"the tile {tile_number}"
 
     if team:
         embed = discord.Embed(

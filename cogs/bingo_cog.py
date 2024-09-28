@@ -1,5 +1,6 @@
 import json
 import os
+from typing import List
 
 import discord
 from discord import app_commands
@@ -31,7 +32,7 @@ class BingoCog(commands.Cog):
 
     @app_commands.command(name="submit", description="Submit a tile image for a team or user.")
     @app_commands.describe(attachment="Image for the submission", tile="The tile number to submit (optional)", item="Item name (optional)", team="Team name or User ID (optional)")
-    async def submit(self, interaction: discord.Interaction, attachment: discord.Attachment, tile: int = None, item: str = None, team: str = None):
+    async def submit(self, interaction: discord.Interaction, attachment: discord.Attachment, tile: str = None, item: str = None, team: str = None):
         if tile is None and item is None:
             await interaction.response.send_message(
                 "You must provide either a tile number or an item.",
@@ -64,33 +65,26 @@ class BingoCog(commands.Cog):
                 await interaction.response.send_message("Team does not exist.", ephemeral=True)
                 return
 
-        file_exists = False
+        if item:
+            tile = item
 
-        # Check if the file exists for the user
-        if tile:
-            path = f"{base_user_folder}{interaction.guild.id}/Users/{interaction.user.id}/{tile}.jpg"
-            file_exists = os.path.isfile(path)
+        index = 0
+        tile_name = f"{tile}-{index}"
+        path = f"{base_user_folder}{interaction.guild.id}/Users/{interaction.user.id}/{tile_name}.jpg"
 
-        # Fetch submission embed (assuming you have a helper function for this)
-        embed = await get_submission_embed(interaction, attachment, tile, item, team, file_exists)
+        while os.path.isfile(path):
+            index += 1
+            tile_name = f"{tile}-{index}"
+            path = f"{base_user_folder}{interaction.guild.id}/Users/{interaction.user.id}/{tile_name}.jpg"
 
-        # Create appropriate buttons depending on if the file exists
-        if file_exists:
-            submit_buttons = OverwriteButtons(
-                tile=tile,
-                item=item,
-                submitter=interaction.user,
-                attachment=attachment,
-                team=team
-            )
-        else:
-            submit_buttons = SubmissionButtons(
-                tile=tile,
-                item=item,
-                submitter=interaction.user,
-                attachment=attachment,
-                team=team
-            )
+        embed = await get_submission_embed(interaction, attachment, tile, item, team, True)
+
+        submit_buttons = SubmissionButtons(
+            tile=tile_name,
+            submitter=interaction.user,
+            attachment=attachment,
+            team=team
+        )
 
         # Send the message with buttons and the embed
         await interaction.response.send_message(embed=embed, view=submit_buttons)

@@ -129,15 +129,12 @@ async def create_submit_entry(path: str, tile: int | str, submitter: str, overwr
             f.write(json_string)
 
 
-async def save_image(ctx, submitter_id, tile, item, attachment, overwrite=False, team: str = None):
+async def save_image(ctx, submitter_id, tile, attachment, overwrite=False, team: str = None):
     user_path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter_id}"
     file_exists = os.path.isdir(user_path)
 
     if not file_exists:
         os.mkdir(user_path)
-
-    if item:
-        tile = f"{item}-{uuid.uuid4()}"
 
     await create_submit_entry(user_path, tile, str(submitter_id), overwrite)
 
