@@ -13,7 +13,7 @@ client = commands.Bot(
 bingo_admin_roles = ["Leaders", "General", "Moderator", "Bingo Master"]
 admin_users = [700413669011488810, 184022692867997697, 201768152982487041]
 admin_mode = AdminMode.ID
-base_user_folder = os.path.dirname(__file__) + '/'
+base_user_folder = os.path.dirname(__file__)
 
 
 async def read_json_data(json_file):

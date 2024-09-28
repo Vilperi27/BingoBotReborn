@@ -1,3 +1,4 @@
+import logging
 import os
 import asyncio
 
@@ -6,6 +7,9 @@ import discord
 from active_context import client
 import bot_intents
 from local_secrets import DISCORD_API_KEY
+
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+discord.utils.setup_logging(handler=handler, root=False)
 
 allowed_mentions = discord.AllowedMentions(everyone=True)
 intents = bot_intents.get_bot_intents()

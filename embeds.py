@@ -1,40 +1,34 @@
 import discord
 
+from utils import send
 
-async def get_submission_embed(ctx, attachment, tile_number, item, team, overwrite=False):
-    if not attachment:
-        await ctx.response.send_message("Please attach an image with your submission!")
-        return
 
+async def get_submission_embed(ctx, attachment, tile, item, team):
     if not attachment.content_type.startswith('image/'):
-        await ctx.response.send_message("Please submit a valid image!")
-        return
-
-    if item:
-        submission = f"the item {item}"
-    else:
-        submission = f"the tile {tile_number}"
+        return await send(ctx, "Please submit a valid image!")
 
     if team:
-        embed = discord.Embed(
-            title=f"Submission for {submission} for {team}",
-            description=f"Submitted by {ctx.user.mention}"
-        )
+        title = f"Submission for the team {team}"
     else:
-        embed = discord.Embed(
-            title=f"Submission for {submission}",
-            description=f"Submitted by {ctx.user.mention}"
-        )
+        title = f"Submission for {ctx.user}"
+
+    description = ""
+
+    if tile:
+        description += f"Tile: {tile}\n"
+    if item:
+        description += f"Item: {item}\n"
+
+    description += f"Submitted by {ctx.user.mention}"
+
+    embed = discord.Embed(
+        title=title,
+        description=description
+    )
     embed.set_image(url=attachment.url)
     embed.colour = discord.Colour.light_grey()
+    embed.set_footer(
+        text=f"Bingo admin will approve or reject your submission."
+    )
 
-    if overwrite:
-        embed.set_footer(
-            text=f"Submission already exists, please confirm the previous submission before overwriting. "
-                 f"Bingo admin will approve and ovewrite or reject your submission."
-        )
-    else:
-        embed.set_footer(
-            text=f"Bingo admin will approve or reject your submission."
-        )
     return embed
