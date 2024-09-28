@@ -77,7 +77,7 @@ class BingoCog(commands.Cog):
             tile_name = f"{tile}-{index}"
             path = f"{base_user_folder}{interaction.guild.id}/Users/{interaction.user.id}/{tile_name}.jpg"
 
-        embed = await get_submission_embed(interaction, attachment, tile, item, team, True)
+        embed = await get_submission_embed(interaction, attachment, tile, item, team, False)
 
         submit_buttons = SubmissionButtons(
             tile=tile_name,

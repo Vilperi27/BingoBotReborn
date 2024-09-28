@@ -87,28 +87,11 @@ async def create_submit_entry(path: str, tile: int | str, submitter: str, overwr
         with open(path, 'r') as json_file:
             data = json.load(json_file)
 
-        tile_exists = False
-        found_tile_index = -1
-
-        for index, entry in enumerate(data['entries']):
-            if entry['tile'] == tile:
-                tile_exists = True
-                found_tile_index = index
-                break
-
-        if tile_exists and not overwrite:
-            raise TileExistsError("Tile already exists for that id.")
-
-        if not tile_exists:
-            data['entries'].append({
-                'tile': tile,
-                'submitter': submitter,
-                'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
-            })
-        else:
-            data['entries'][found_tile_index]['tile'] = tile
-            data['entries'][found_tile_index]['submitter'] = submitter
-            data['entries'][found_tile_index]['submitted'] = datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+        data['entries'].append({
+            'tile': tile,
+            'submitter': submitter,
+            'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S")
+        })
 
         with open(path, 'w') as json_file:
             json_string = json.dumps(data)

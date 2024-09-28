@@ -20,7 +20,7 @@ class SubmissionButtons(View):
                 return
 
             await register_user(interaction.guild.id, self.submitter.id, self.team)
-            await save_image(interaction, self.submitter.id, self.tile, self.attachment, team=self.team, overwrite=True)
+            await save_image(interaction, self.submitter.id, self.tile, self.attachment, team=self.team)
             await interaction.response.send_message(
                 f"You have approved this submission!",
                 ephemeral=True
@@ -65,7 +65,7 @@ class OverwriteButtons(View):
             return
 
         await register_user(interaction.guild.id, self.submitter.id, self.team)
-        await save_image(interaction, self.submitter.id, self.tile, self.attachment, True, self.team)
+        await save_image(interaction, self.submitter.id, self.tile, self.attachment, self.team)
         await interaction.response.send_message(
             f"You have approved and overwritten this submission!",
             ephemeral=True
