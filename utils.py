@@ -255,7 +255,7 @@ async def send(interaction: Interaction, message: str = '', silent: bool = True,
     elif embed:
         await interaction.response.send_message(message, silent=silent, embed=embed)
     else:
-        await interaction.response.send_message(message, silent=silent)
+        await interaction.response.send_message(message, silent=silent, ephemeral=ephemeral)
 
 
 def get_submissions(path: str, submission: dict):
@@ -266,8 +266,11 @@ def get_submissions(path: str, submission: dict):
     with open(path + '/entries.json', 'r') as json_file:
         data = json.load(json_file)
 
-    for entry in data["entries"][submission_type][value]:
-        submissions.append(entry)
+    try:
+        for entry in data["entries"][submission_type][value]:
+            submissions.append(entry)
+    except KeyError:
+        pass
 
     return submissions
 

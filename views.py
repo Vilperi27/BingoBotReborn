@@ -18,7 +18,7 @@ class SubmissionButtons(View):
     @discord.ui.button(label="Approve", style=discord.ButtonStyle.success)
     async def approve(self, interaction: discord.Interaction, button: Button):
         if not has_admin_role(interaction):
-            return await send(interaction, "Forbidden action.", ephemeral=True)
+            return await send(interaction, "Forbidden action.")
 
         guild_id = interaction.guild.id
         register_all(guild_id, self.team, self.submitter.id)
@@ -30,20 +30,15 @@ class SubmissionButtons(View):
         await interaction.message.edit(content=":white_check_mark: Approved! :white_check_mark:", view=self)
         await send(
             interaction,
-            f"You have approved this submission!",
-            ephemeral=True
+            f"You have approved this submission!"
         )
 
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.danger)
     async def reject(self, interaction: discord.Interaction, button: Button):
         if not has_admin_role(interaction):
-            await interaction.response.send_message("Forbidden action.", ephemeral=True)
-            return
+            return await send(interaction, "Forbidden action.")
 
-        await interaction.response.send_message(
-            f"You have rejected this submission!",
-            ephemeral=True
-        )
+        await send(interaction, f"You have rejected this submission!")
 
         for button in self.children:
             button.disabled = True
@@ -62,14 +57,13 @@ class OverwriteButtons(View):
     @discord.ui.button(label="Overwrite", style=discord.ButtonStyle.primary)
     async def overwrite(self, interaction: discord.Interaction, button: Button):
         if not has_admin_role(interaction):
-            await interaction.response.send_message("Forbidden action.", ephemeral=True)
-            return
+            return await send(interaction, "Forbidden action.")
 
         await register_user(interaction.guild.id, self.submitter.id, self.team)
-        await save_image(interaction, self.submitter.id, self.tile, self.attachment, self.team)
-        await interaction.response.send_message(
-            f"You have approved and overwritten this submission!",
-            ephemeral=True
+        await save_image(self.attachment, interaction.guild.id, self.submitter.id, self.team)
+        await send(
+            interaction,
+            f"You have approved and overwritten this submission!"
         )
 
         for button in self.children:
@@ -80,12 +74,11 @@ class OverwriteButtons(View):
     @discord.ui.button(label="Reject", style=discord.ButtonStyle.danger)
     async def reject(self, interaction: discord.Interaction, button: Button):
         if not has_admin_role(interaction):
-            await interaction.response.send_message("Forbidden action.", ephemeral=True)
-            return
+            return await send(interaction, "Forbidden action.")
 
-        await interaction.response.send_message(
-            f"You have rejected this submission!",
-            ephemeral=True
+        await send(
+            interaction,
+            f"You have rejected this submission!"
         )
 
         for button in self.children:

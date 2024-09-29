@@ -35,8 +35,7 @@ class BingoCog(commands.Cog):
         if tile is None and item is None:
             return await send(
                 interaction,
-                "You must provide either a tile number and/or an item.",
-                ephemeral=True
+                "You must provide either a tile number and/or an item."
             )
 
         if item:
@@ -45,8 +44,7 @@ class BingoCog(commands.Cog):
             except KeyError:
                 return await send(
                     interaction,
-                    "Item does not exist",
-                    ephemeral=True
+                    "Item does not exist"
                 )
 
         if team and not team_exists(interaction.guild.id, team):
@@ -71,22 +69,19 @@ class BingoCog(commands.Cog):
         if not tile and not item:
             return await send(
                 interaction,
-                "You must provide either a tile number or an item.",
-                ephemeral=True
+                "You must provide either a tile number or an item."
             )
 
         if tile and item:
             return await send(
                 interaction,
-                "Please only provide either tile number or an item name.",
-                ephemeral=True
+                "Please only provide either tile number or an item name."
             )
 
         if user_id and team:
             return await send(
                 interaction,
-                "Please only provide either user ID or an team name.",
-                ephemeral=True
+                "Please only provide either user ID or an team name."
             )
 
         guild_id = interaction.guild.id
@@ -102,8 +97,7 @@ class BingoCog(commands.Cog):
             except KeyError:
                 return await send(
                     interaction,
-                    "Item does not exist",
-                    ephemeral=True
+                    "Item does not exist"
                 )
 
         if tile:
@@ -116,6 +110,9 @@ class BingoCog(commands.Cog):
         await interaction.response.send_message("Fetching submissions...", silent=True)
 
         submissions = get_submissions(path, submission)
+
+        if len(submissions) == 0:
+            return await interaction.edit_original_response(content="No submissions found.")
 
         for sub in submissions:
             submitter = sub['submitter']
@@ -134,6 +131,8 @@ class BingoCog(commands.Cog):
                     file=picture,
                     silent=True
                 )
+
+        return await interaction.edit_original_response(content=f"{len(submissions)} submissions found.")
 
     @commands.command()
     async def get_all(self, ctx, *user_id_or_team):
