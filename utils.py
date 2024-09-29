@@ -83,8 +83,9 @@ def register_all(guild_id: int, team: str, submitter_id: int):
     if not guild_exists(guild_id):
         register_guild(guild_id)
 
-    if not team_exists(guild_id, team):
-        register_team(guild_id, team)
+    if team:
+        if not team_exists(guild_id, team):
+            register_team(guild_id, team)
 
     if not user_exists(guild_id, submitter_id):
         register_user(guild_id, submitter_id)
@@ -107,9 +108,13 @@ async def create_team_submit_entry(path: str, submitter_id: int, identifier: str
         }
 
         if tile:
+            if not data['entries']['tiles'].get(tile):
+                data['entries']['tiles'] = {tile: []}
             data['entries']['tiles'][tile].append(submission_data)
 
         if item:
+            if not data['entries']['items'].get(item):
+                data['entries']['items'] = {item: []}
             data['entries']['items'][item].append(submission_data)
 
         with open(path, 'w') as json_file:
@@ -164,9 +169,13 @@ async def create_user_submit_entry(path: str, submitter_id: int, tile: str = Non
         }
 
         if tile:
+            if not data['entries']['tiles'].get(tile):
+                data['entries']['tiles'] = {tile: []}
             data['entries']['tiles'][tile].append(submission_data)
 
         if item:
+            if not data['entries']['items'].get(item):
+                data['entries']['items'] = {item: []}
             data['entries']['items'][item].append(submission_data)
 
         with open(path, 'w') as json_file:
@@ -247,3 +256,18 @@ async def send(interaction: Interaction, message: str = '', silent: bool = True,
         await interaction.response.send_message(message, silent=silent, embed=embed)
     else:
         await interaction.response.send_message(message, silent=silent)
+
+
+def get_submissions(path: str, submission: dict):
+    submission_type = submission['type']
+    value = submission['value']
+    submissions = []
+
+    with open(path + '/entries.json', 'r') as json_file:
+        data = json.load(json_file)
+
+    for entry in data["entries"][submission_type][value]:
+        submissions.append(entry)
+
+    return submissions
+
