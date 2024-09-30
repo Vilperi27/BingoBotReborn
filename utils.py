@@ -93,123 +93,81 @@ def register_all(guild_id: int, team: str, submitter_id: int):
 
 async def create_team_submit_entry(path: str, submitter_id: int, identifier: str, tile: str = None, item: str = None):
     path = path + '/entries.json'
-    file_exists = os.path.isfile(path)
 
-    # If file exists, append the new entry to the json file,
-    # If no entries exist, create the json-file.
-    if file_exists:
+    # Load existing data from the JSON file if it exists
+    try:
         with open(path, 'r') as json_file:
             data = json.load(json_file)
+    except FileNotFoundError:
+        # If the file doesn't exist, initialize the structure
+        data = {'entries': {'tiles': {}, 'items': {}}}
 
-        submission_data = {
-            'submitter': submitter_id,
-            'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-            'identifier': identifier
-        }
+    # Create the submission data
+    submission_data = {
+        'submitter': submitter_id,
+        'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+        'identifier': identifier
+    }
 
-        if tile:
-            if not data['entries']['tiles'].get(tile):
-                data['entries']['tiles'] = {tile: []}
-            data['entries']['tiles'][tile].append(submission_data)
+    # Handle the tile submission
+    if tile:
+        # If the key for the tile doesn't exist, create an empty list for it
+        if tile not in data['entries']['tiles']:
+            data['entries']['tiles'][tile] = []
+        # Append the new submission to the tile's list
+        data['entries']['tiles'][tile].append(submission_data)
 
-        if item:
-            if not data['entries']['items'].get(item):
-                data['entries']['items'] = {item: []}
-            data['entries']['items'][item].append(submission_data)
+    # Handle the item submission
+    if item:
+        # If the key for the item doesn't exist, create an empty list for it
+        if item not in data['entries']['items']:
+            data['entries']['items'][item] = []
+        # Append the new submission to the item's list
+        data['entries']['items'][item].append(submission_data)
 
-        with open(path, 'w') as json_file:
-            json_string = json.dumps(data)
-            json_file.write(json_string)
-    else:
-        with open(path, "a+") as f:
-            data = {
-                'entries': {
-                    'tiles': {},
-                    'items': {}
-                }
-            }
-
-            if tile:
-                data['entries']['tiles'][tile] = [
-                    {
-                        'submitter': submitter_id,
-                        'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                        'identifier': identifier
-                    }
-                ]
-
-            if item:
-                data['entries']['items'][item] = [
-                    {
-                        'submitter': submitter_id,
-                        'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                        'identifier': identifier
-                    }
-                ]
-
-            json_string = json.dumps(data)
-            f.write(json_string)
+    # Write the updated data back to the file
+    with open(path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)  # Indent added for readability
 
 
 async def create_user_submit_entry(path: str, submitter_id: int, tile: str = None, item: str = None):
     generated_identifier = str(uuid.uuid4())
     path = path + '/entries.json'
-    file_exists = os.path.isfile(path)
 
-    # If file exists, append the new entry to the json file,
-    # If no entries exist, create the json-file.
-    if file_exists:
+    # Load existing data from the JSON file if it exists
+    try:
         with open(path, 'r') as json_file:
             data = json.load(json_file)
+    except FileNotFoundError:
+        # If the file doesn't exist, initialize the structure
+        data = {'entries': {'tiles': {}, 'items': {}}}
 
-        submission_data = {
-            'submitter': submitter_id,
-            'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-            'identifier': generated_identifier
-        }
+    # Create the submission data
+    submission_data = {
+        'submitter': submitter_id,
+        'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
+        'identifier': generated_identifier
+    }
 
-        if tile:
-            if not data['entries']['tiles'].get(tile):
-                data['entries']['tiles'] = {tile: []}
-            data['entries']['tiles'][tile].append(submission_data)
+    # Handle the tile submission
+    if tile:
+        # If the key for the tile doesn't exist, create an empty list for it
+        if tile not in data['entries']['tiles']:
+            data['entries']['tiles'][tile] = []
+        # Append the new submission to the tile's list
+        data['entries']['tiles'][tile].append(submission_data)
 
-        if item:
-            if not data['entries']['items'].get(item):
-                data['entries']['items'] = {item: []}
-            data['entries']['items'][item].append(submission_data)
+    # Handle the item submission
+    if item:
+        # If the key for the item doesn't exist, create an empty list for it
+        if item not in data['entries']['items']:
+            data['entries']['items'][item] = []
+        # Append the new submission to the item's list
+        data['entries']['items'][item].append(submission_data)
 
-        with open(path, 'w') as json_file:
-            json_string = json.dumps(data)
-            json_file.write(json_string)
-    else:
-        with open(path, "a+") as f:
-            data = {
-                'entries': {
-                    'tiles': {},
-                    'items': {}
-                }
-            }
-
-            if tile:
-                data['entries']['tiles'][tile] = [
-                    {
-                        'submitter': submitter_id,
-                        'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                        'identifier': generated_identifier
-                    }
-                ]
-
-            if item:
-                data['entries']['items'][item] = [
-                    {
-                        'submitter': submitter_id,
-                        'submitted': datetime.now().strftime("%d/%m/%Y, %H:%M:%S"),
-                        'identifier': generated_identifier
-                    }
-                ]
-
-            json_string = json.dumps(data)
-            f.write(json_string)
+    # Write the updated data back to the file
+    with open(path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)  # Indent added for readability
 
     return generated_identifier
 
