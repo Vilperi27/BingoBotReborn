@@ -9,7 +9,7 @@ import osrs_item_ids
 from active_context import base_user_folder
 from embeds import get_submission_embed
 from utils import mention_user, has_admin_role, register_team, send, team_exists, get_submissions
-from views import SubmissionButtons
+from views import SubmissionButtons, RemoveButton
 
 
 class BingoCog(commands.Cog):
@@ -86,11 +86,6 @@ class BingoCog(commands.Cog):
 
         guild_id = interaction.guild.id
 
-        if team:
-            path = f"{base_user_folder}/{guild_id}/Teams/{team}"
-        else:
-            path = f"{base_user_folder}/{guild_id}/Users/{user_id}"
-
         if item:
             try:
                 osrs_item_ids.get_item_by_name(item)
@@ -99,6 +94,11 @@ class BingoCog(commands.Cog):
                     interaction,
                     "Item does not exist"
                 )
+
+        if team:
+            path = f"{base_user_folder}/{guild_id}/Teams/{team}"
+        else:
+            path = f"{base_user_folder}/{guild_id}/Users/{user_id}"
 
         if tile:
             submission_type = 'Tile'
@@ -124,117 +124,26 @@ class BingoCog(commands.Cog):
 
             with open(f'{image_path}', 'rb') as image:
                 picture = discord.File(image)
+
+                remove_button = RemoveButton(
+                    guild_id=guild_id,
+                    submission=submission,
+                    identifier=identifier,
+                    user_id=submitter,
+                    team=team,
+                )
+
+                # Send the message with buttons and the embed
                 await interaction.channel.send(
                     content=f'Submitter: {mention_user(submitter)}\n'
                             f'{submission_type}: {submission_value}\n'
                             f'Submitted: {submitted}',
+                    view=remove_button,
                     file=picture,
                     silent=True
                 )
 
         return await interaction.edit_original_response(content=f"{len(submissions)} submissions found.")
-
-    @commands.command()
-    async def get_all(self, ctx, *user_id_or_team):
-        user_id_or_team = " ".join(user_id_or_team[:])
-
-        if isinstance(user_id_or_team, str):
-            path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{user_id_or_team}"
-            is_team = True
-        else:
-            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id_or_team}"
-            is_team = False
-        file_exists = os.path.isdir(path)
-
-        # If account exists, get all the entries from the json-file.
-        if not file_exists:
-            await ctx.response.send_message('User or team does not exist, make sure to use the correct id or name.')
-            return
-        else:
-            with open(path + '/entries.json', 'r') as json_file:
-                data = json.load(json_file)
-
-            entries = []
-            for entry in data['entries']:
-                entries.append(entry['tile'])
-
-            if entries:
-                entries = sorted(entries, key=int)
-                entries = ','.join(map(str, entries))
-
-                if is_team:
-                    await ctx.response.send_message(f'Entries for {user_id_or_team} exist for tiles: {entries}', silent=True)
-                else:
-                    await ctx.response.send_message(f'Entries for {mention_user(user_id_or_team)} exist for tiles: {entries}', silent=True)
-            else:
-                await ctx.response.send_message('No entries found')
-
-    @commands.command()
-    async def remove(self, ctx, tile: int, *user_id_or_team):
-        user_id_or_team = " ".join(user_id_or_team[:])
-
-        if not has_admin_role(ctx):
-            await ctx.response.send_message("Forbidden action.", silent=True)
-            return
-
-        if isinstance(user_id_or_team, str):
-            path = f"{base_user_folder}{ctx.message.guild.id}/Teams/{user_id_or_team}"
-            is_team = True
-        else:
-            path = f"{base_user_folder}{ctx.message.guild.id}/Users/{user_id_or_team}"
-            is_team = False
-
-        file_exists = os.path.isdir(path)
-
-        if not file_exists:
-            await ctx.response.send_message('User or team does not exist, make sure to use the correct id or name.')
-            return
-
-        with open(path + '/entries.json', 'r') as json_file:
-            data = json.load(json_file)
-
-        if len(data['entries']) == 0:
-            await ctx.response.send_message(f"{user_id_or_team} does not have any submissions.", silent=True)
-            return
-
-        submitter = None
-
-        for index, entry in enumerate(data['entries']):
-            if entry['tile'] == tile:
-
-                if is_team:
-                    submitter = entry['submitter']
-
-                del data['entries'][index]
-                with open(path + '/entries.json', 'w') as json_file:
-                    json_string = json.dumps(data)
-                    json_file.write(json_string)
-                break
-
-            if index == len(data['entries']) - 1:
-                return
-
-        if not is_team:
-            os.remove(f'{path}/{tile}.jpg')
-
-        if is_team:
-            user_path = f"{base_user_folder}{ctx.message.guild.id}/Users/{submitter}"
-            with open(user_path + '/entries.json', 'r') as json_file:
-                data = json.load(json_file)
-
-            for index, entry in enumerate(data['entries']):
-                if entry['tile'] == tile:
-                    del data['entries'][index]
-                    with open(user_path + '/entries.json', 'w') as json_file:
-                        json_string = json.dumps(data)
-                        json_file.write(json_string)
-                    break
-
-                if index == len(data['entries']) - 1:
-                    return
-
-            os.remove(f'{user_path}/{tile}.jpg')
-        await ctx.response.send_message(f"Tile {tile} removed for {user_id_or_team}", silent=True)
 
 
 async def setup(client):
