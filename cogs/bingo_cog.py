@@ -175,9 +175,6 @@ class BingoCog(commands.Cog):
     @app_commands.command(name="board", description="Get the current board status for a team")
     @app_commands.describe(team="Team name")
     async def board(self, interaction, team: str):
-        if not has_admin_role(interaction):
-            return await send(interaction, "Forbidden action.")
-
         team_path = f"{base_user_folder}/{interaction.guild.id}/Teams/{team}"
         path = team_path + '/entries.json'
 
