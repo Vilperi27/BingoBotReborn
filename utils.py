@@ -232,3 +232,20 @@ def get_submissions(path: str, submission: dict):
 
     return submissions
 
+
+def get_completed_lines(matrix, as_data=False):
+    fully_completed_rows = [row for row in matrix if all(cell == 'X' for cell in row)]
+    fully_completed_columns = [list(column) for column in zip(*matrix) if all(cell == 'X' for cell in column)]
+    fully_completed_diagonals = []
+
+    main_diagonal = [matrix[i][i] for i in range(min(len(matrix), len(matrix[0]))) if matrix[i][i] == 'X']
+    if len(main_diagonal) == min(len(matrix), len(matrix[0])):
+        fully_completed_diagonals.append(main_diagonal)
+
+    anti_diagonal = [matrix[i][len(matrix[0]) - 1 - i] for i in range(min(len(matrix), len(matrix[0]))) if matrix[i][len(matrix[0]) - 1 - i] == 'X']
+    if len(anti_diagonal) == min(len(matrix), len(matrix[0])):
+        fully_completed_diagonals.append(anti_diagonal)
+
+    if as_data:
+            return [len(fully_completed_rows), len(fully_completed_columns), len(fully_completed_diagonals)]
+    return f'Rows completed: {len(fully_completed_rows)}', f'Columns completed: {len(fully_completed_columns)}', f'Diagonals completed: {len(fully_completed_diagonals)}'
