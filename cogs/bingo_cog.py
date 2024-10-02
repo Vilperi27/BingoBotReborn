@@ -1,9 +1,11 @@
 import io
 import json
 import math
+from decimal import Decimal
 
 import cv2
 import discord
+import requests
 from PIL import Image
 from discord import app_commands
 from discord.ext import commands
@@ -232,6 +234,60 @@ class BingoCog(commands.Cog):
                 file=discord.File(fp=image_binary, filename='image.png'),
                 silent=True
             )
+
+    @app_commands.command(name="loot", description="Get the current loot value of a team")
+    @app_commands.describe(team="Team name")
+    async def loot(self, interaction, team: str):
+        team_path = f"{base_user_folder}/{interaction.guild.id}/Teams/{team}"
+        path = team_path + '/entries.json'
+
+        # Load existing data from the JSON file if it exists
+        try:
+            with open(path, 'r') as json_file:
+                data = json.load(json_file)
+        except FileNotFoundError:
+            return await send(interaction, f"Team not found!", ephemeral=True)
+
+        items = []
+
+        for item, submissions in data["entries"]["items"].items():
+            items.append({"item": item, "count": len(submissions)})
+
+        user_agent = {'User-agent': 'item-price-checker'}
+        item_data_latest = requests.get(
+            f"http://prices.runescape.wiki/api/v1/osrs/latest",
+            headers=user_agent
+        ).json()
+
+        content = "\n"
+        value_sum = Decimal(0)
+
+        for item in items:
+            item_name = item['item']
+            item_count = item['count']
+            item_id = osrs_item_ids.get_item_by_name(item_name)
+
+            item_price_high = Decimal(item_data_latest["data"][str(item_id)]["high"])
+            item_price_low = Decimal(item_data_latest["data"][str(item_id)]["low"])
+
+            average = math.floor((item_price_high + item_price_low) / Decimal(2))
+
+            content += f"Item name: {item_name} - Item count: {item_count} - Average value: {average:,} gp\n"
+            value_sum += average * item_count
+
+        embed = discord.Embed(
+            title=f"Total loot for the team {team}",
+            description=f"{content}"
+        )
+        embed.colour = discord.Colour.light_grey()
+        embed.set_footer(
+            text=f"\nTotal loot value: {value_sum:,} gp!"
+        )
+
+        await interaction.response.send_message(
+            silent=True,
+            embed=embed
+        )
 
 
 async def setup(client):
