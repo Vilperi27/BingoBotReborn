@@ -238,6 +238,8 @@ class BingoCog(commands.Cog):
     @app_commands.command(name="loot", description="Get the current loot value of a team")
     @app_commands.describe(team="Team name")
     async def loot(self, interaction, team: str):
+        if not has_admin_role(interaction):
+            return await send(interaction, "Forbidden action.")
         team_path = f"{base_user_folder}/{interaction.guild.id}/Teams/{team}"
         path = team_path + '/entries.json'
 
